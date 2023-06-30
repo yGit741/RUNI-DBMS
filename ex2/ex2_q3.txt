@@ -1,0 +1,69 @@
+-- 1. Names of physicians who were on duty on 01/01/2011
+SELECT p.first_name, p.last_name
+FROM Physicians p
+JOIN Shifts s ON p.physician_id = s.physician_id
+WHERE s.date = '2011-01-01';
+
+-- 2. Details of the physicians (physician ID, first name, last name) who were on duty on 01/01/2011 and started to work at 13:00
+SELECT p.physician_id, p.first_name, p.last_name
+FROM Physicians p
+JOIN Shifts s ON p.physician_id = s.physician_id
+WHERE s.date = '2011-01-01' AND s.start_time = '13:00';
+
+-- 3. Show the expertise domain of the physicians "Dana" and "Alice"
+SELECT e.expertise
+FROM Expertise e
+JOIN Physicians p ON e.physician_id = p.physician_id
+WHERE p.first_name IN ('Dana', 'Alice');
+
+-- 4. Show the physician's details (physician ID, first name, last name) who has the most expertise domains
+SELECT p.physician_id, p.first_name, p.last_name
+FROM Physicians p
+JOIN Expertise e ON p.physician_id = e.physician_id
+GROUP BY p.physician_id, p.first_name, p.last_name
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+-- 5. Show the patient (patient ID, first name, last name) who received the most (different) treatments
+SELECT pt.patient_id, pt.first_name, pt.last_name
+FROM Patients pt
+JOIN Patient_Treatments ptmt ON pt.patient_id = ptmt.patient_id
+GROUP BY pt.patient_id, pt.first_name, pt.last_name
+ORDER BY COUNT(DISTINCT ptmt.treatment_code) DESC
+LIMIT 1;
+
+-- 6. Details of the patients (patient ID, first name, last name) who received more than three different treatments
+SELECT pt.patient_id, pt.first_name, pt.last_name
+FROM Patients pt
+JOIN Patient_Treatments ptmt ON pt.patient_id = ptmt.patient_id
+GROUP BY pt.patient_id, pt.first_name, pt.last_name
+HAVING COUNT(DISTINCT ptmt.treatment_code) > 3;
+
+-- 7. Details of the patients (patient ID, first name, last name) who did not receive any treatment
+SELECT p.patient_id, p.first_name, p.last_name
+FROM Patients p
+LEFT JOIN Patient_Treatments pt ON p.patient_id = pt.patient_id
+WHERE pt.patient_id IS NULL;
+
+-- 8. Details of patients who have not made any progress in their treatment (no comment in the Patient progress table)
+SELECT p.patient_id, p.first_name, p.last_name
+FROM Patients p
+LEFT JOIN Patient_Progress pp ON p.patient_id = pp.patient_id
+WHERE pp.patient_id IS NULL;
+
+-- 9. The patient in whose condition the most progress has been made (appears most often in the comments in the Patient progress table)
+SELECT p.patient_id, p.first_name, p.last_name
+FROM Patients p
+JOIN Patient_Progress pp ON p.patient_id = pp.patient_id
+GROUP BY p.patient_id, p.first_name, p.last_name
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+-- 10. Add a new record to the patient progress table (details as you wish)
+INSERT INTO Patient_Progress (patient_id, treatment_code, physician_id, initial_status_description, current_status_description, treatment_end_date)
+VALUES ('123', 'ABC', '456', 'Initial status', 'Current status', '2023-06-10');
+
+-- 11. Update the degree of an employee whose patient ID is '222' to 'Phd'
+UPDATE Physicians
+SET degree = 'Phd'
+WHERE physician_id = '222';

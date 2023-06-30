@@ -1,0 +1,92 @@
+-- Physicians
+CREATE TABLE Physicians (
+  physician_id INTEGER PRIMARY KEY,
+  password VARCHAR(255) NOT NULL,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  degree VARCHAR(255),
+  year_of_certification INTEGER,
+  telephone VARCHAR(20),
+  address VARCHAR(255),
+  CHECK (degree IN ('MD', 'Dr', 'MBBS')),
+  CHECK (year_of_certification >= 1900),
+  CHECK (LENGTH(telephone) BETWEEN 10 AND 20)
+);
+
+-- Expertise
+CREATE TABLE Expertise (
+  physician_id INTEGER REFERENCES Physicians(physician_id) ON DELETE CASCADE,
+  expertise VARCHAR(255),
+  PRIMARY KEY (physician_id, expertise)
+);
+
+-- Shifts
+CREATE TABLE Shifts (
+  physician_id INTEGER REFERENCES Physicians(physician_id) ON DELETE CASCADE,
+  shift_date DATE,
+  start_time TIME,
+  end_time TIME,
+  PRIMARY KEY (physician_id, shift_date),
+  CHECK (start_time < end_time)
+);
+
+-- Patients
+CREATE TABLE Patients (
+  patient_id INTEGER PRIMARY KEY,
+  password VARCHAR(255) NOT NULL,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  date_of_birth DATE,
+  address VARCHAR(255),
+  telephone VARCHAR(20),
+  father_name VARCHAR(255),
+  mother_name VARCHAR(255),
+  CHECK (LENGTH(telephone) BETWEEN 7 AND 20),
+  CHECK (date_of_birth <= CURRENT_DATE)
+);
+
+-- Treatment types 
+CREATE TABLE Treatments (
+  treatment_code INTEGER PRIMARY KEY,
+  treatment_name VARCHAR(255) NOT NULL,
+  treatment_description TEXT
+);
+
+-- Test types 
+CREATE TABLE Tests (
+  test_code INTEGER PRIMARY KEY,
+  test_name VARCHAR(255) NOT NULL,
+  test_description TEXT
+);
+
+-- Patient tests 
+CREATE TABLE PatientTests (
+  test_code INTEGER REFERENCES Tests(test_code) ON DELETE CASCADE,
+  patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE,
+  test_date DATE,
+  result VARCHAR(255),
+  PRIMARY KEY (test_code, patient_id, test_date)
+);
+
+-- Patient treatments 
+CREATE TABLE PatientTreatments (
+  patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE,
+  treatment_code INTEGER REFERENCES Treatments(treatment_code) ON DELETE CASCADE,
+  physician_id INTEGER REFERENCES Physicians(physician_id) ON DELETE SET NULL,
+  start_date DATE,
+  end_date DATE,
+  PRIMARY KEY (patient_id, treatment_code),
+  CHECK (start_date <= end_date)
+);
+
+-- Patient progress
+CREATE TABLE PatientProgress (
+  patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE,
+  treatment_code INTEGER REFERENCES Treatments(treatment_code) ON DELETE CASCADE,
+  physician_id INTEGER REFERENCES Physicians(physician_id) ON DELETE SET NULL,
+  initial_status_description TEXT,
+  current_status_description TEXT,
+  treatment_end_date DATE,
+  PRIMARY KEY (patient_id, treatment_code),
+  CHECK (treatment_end_date >= start_date)
+);
